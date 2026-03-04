@@ -26,6 +26,17 @@ function handleSignup(event) {
     return;
   }
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    showError('Please enter a valid email address');
+    return;
+  }
+
+  if (password.length < 6) {
+    showError('Password must be at least 6 characters');
+    return;
+  }
+
   const user = {
     name: name,
     email: email,
@@ -51,17 +62,21 @@ function handleLogin(event) {
   const userData = localStorage.getItem('user');
 
   if (!userData) {
-    showError('No account found. Please sign up first.');
+    showError('No account found. Please create an account first.');
     return;
   }
 
-  const user = JSON.parse(userData);
+  try {
+    const user = JSON.parse(userData);
 
-  if (user.email === email && user.password === password) {
-    localStorage.setItem('AUTH_TOKEN', 'logged_in');
-    window.location.href = 'dashboard.html';
-  } else {
-    showError('Invalid email or password');
+    if (user.email === email && user.password === password) {
+      localStorage.setItem('AUTH_TOKEN', 'logged_in');
+      window.location.href = 'dashboard.html';
+    } else {
+      showError('Invalid email or password');
+    }
+  } catch {
+    showError('Account data corrupted. Please sign up again.');
   }
 }
 
@@ -82,8 +97,12 @@ function loadDashboard() {
   const userNameElement = document.getElementById('userName');
 
   if (userData && userNameElement) {
-    const user = JSON.parse(userData);
-    userNameElement.textContent = user.name;
+    try {
+      const user = JSON.parse(userData);
+      userNameElement.textContent = user.name || 'User';
+    } catch {
+      userNameElement.textContent = 'User';
+    }
   }
 }
 
